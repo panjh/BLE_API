@@ -140,6 +140,7 @@ public:
         BLEProtocol::Address_t *addresses;
         uint8_t                 size;
         uint8_t                 capacity;
+        uint8_t                 bonds;
     };
 
 
