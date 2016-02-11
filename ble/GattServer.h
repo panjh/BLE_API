@@ -39,6 +39,9 @@ public:
     typedef FunctionPointerWithContext<const GattServer *> GattServerShutdownCallback_t;
     typedef CallChainOfFunctionPointersWithContext<const GattServer *> GattServerShutdownCallbackChain_t;
 
+    typedef FunctionPointerWithContext<const GattSysAttrMissingCallbackParams*> SysAttrMissingCallback_t;
+    typedef CallChainOfFunctionPointersWithContext<const GattSysAttrMissingCallbackParams*> SysAttrMissingCallbackChain_t;
+
     typedef FunctionPointerWithContext<GattAttribute::Handle_t> EventCallback_t;
 
 protected:
@@ -48,6 +51,7 @@ protected:
         dataSentCallChain(),
         dataWrittenCallChain(),
         dataReadCallChain(),
+        sysAttrMissingCallChain(),
         updatesEnabledCallback(NULL),
         updatesDisabledCallback(NULL),
         confirmationReceivedCallback(NULL) {
@@ -317,6 +321,36 @@ public:
     }
 
     /**
+     * Set up a callback for when asystem descriptor (CCCD) is missing.
+     * This may be raised in response to a BLE profile change om a bonded connection.
+     * This callback provides the opportunity for user applications to restore
+     * CCCD state at the appropriate time.
+     *
+     * @Note: It is possible to chain together multiple onSysAttrMissing callbacks
+     * (potentially from different modules of an application), although it is unlikely
+     * that this will be beneficial.
+     *
+     * @Note: It is also possible to set up a callback into a member function of
+     * some object.
+     *
+     * @Note It is possible to unregister a callback using onSysAttrMissing().detach(callback)
+     */
+    void onSysAttrMissing(const SysAttrMissingCallback_t& callback) {sysAttrMissingCallChain.add(callback);}
+    template <typename T>
+    void onSysAttrMissing(T *objPtr, void (T::*memberPtr)(const GattSysAttrMissingCallbackParams* connectionHandle)) {
+        sysAttrMissingCallChain.add(objPtr, memberPtr);
+    }
+
+    /**
+     * @brief provide access to the callchain of data written event callbacks
+     * It is possible to register callbacks using onDataWritten().add(callback);
+     * It is possible to unregister callbacks using onDataWritten().detach(callback)
+     * @return The data written event callbacks chain
+     */
+    SysAttrMissingCallbackChain_t& onSysAttrMissing() {
+        return sysAttrMissingCallChain;
+    }
+    /**
      * Setup a callback to be invoked on the peripheral when an attribute is
      * being read by a remote client.
      *
@@ -417,6 +451,10 @@ public:
 
     /* Entry points for the underlying stack to report events back to the user. */
 protected:
+    void handleSysAttrMissingEvent(const GattSysAttrMissingCallbackParams *params) {
+        sysAttrMissingCallChain.call(params);
+    }
+
     void handleDataWrittenEvent(const GattWriteCallbackParams *params) {
         dataWrittenCallChain.call(params);
     }
@@ -476,6 +514,7 @@ public:
         dataSentCallChain.clear();
         dataWrittenCallChain.clear();
         dataReadCallChain.clear();
+        sysAttrMissingCallChain.clear();
         updatesEnabledCallback       = NULL;
         updatesDisabledCallback      = NULL;
         confirmationReceivedCallback = NULL;
@@ -491,6 +530,7 @@ private:
     DataSentCallbackChain_t           dataSentCallChain;
     DataWrittenCallbackChain_t        dataWrittenCallChain;
     DataReadCallbackChain_t           dataReadCallChain;
+    SysAttrMissingCallbackChain_t     sysAttrMissingCallChain;
     GattServerShutdownCallbackChain_t shutdownCallChain;
     EventCallback_t                   updatesEnabledCallback;
     EventCallback_t                   updatesDisabledCallback;

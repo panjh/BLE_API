@@ -44,6 +44,10 @@ struct GattReadCallbackParams {
     const uint8_t           *data;    /* @note: Data might not persist beyond the callback; make a local copy if needed. */
 };
 
+struct GattSysAttrMissingCallbackParams {
+    Gap::Handle_t            connHandle;
+};
+
 enum GattAuthCallbackReply_t {
     AUTH_CALLBACK_REPLY_SUCCESS                       = 0x00,    /**< Success. */
     AUTH_CALLBACK_REPLY_ATTERR_INVALID_HANDLE         = 0x0101,  /**< ATT Error: Invalid attribute handle. */
