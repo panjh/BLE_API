@@ -1,6 +1,6 @@
 {
   "name": "ble",
-  "version": "2.5.0",
+  "version": "2.0.0-edison",
   "description": "The BLE module offers a high level abstraction for using Bluetooth Low Energy on multiple platforms.",
   "keywords": [
     "Bluetooth",
@@ -32,7 +32,7 @@
       "ble-wicentric": "~0.0.4"
     },
     "mbed-classic": {
-      "mbed-classic": "~0.0.1"
+      "mbed-classic": "2.0.0-edison"
     },
     "mbed-os": {
       "mbed-drivers": "*",
